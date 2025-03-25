@@ -1,0 +1,46 @@
+so will need three models
+
+and three pufs 
+
+the actual input mapping for each of them will prolly be different 
+
+for results need all the graphs
+
+and maybe explain what goes into the input mapping for each one
+
+which basically determines how secure the PUFS
+
+start with arbiter puf for LR, then perceptron, and then nerual network 
+
+then move to next one bsacially just chaning the input mapping
+
+
+-------------------------------------------------------
+
+
+Okay so 
+
+Lets get working graphs and metrics for each model first 
+
+LR
+perceptron
+NN
+
+Once that works get them for the none and arbiter so we have comparisons
+
+# also make file system after the graphs work so the folders are organized i guess
+
+Next we haae two pufs left
+the main things to actually change is jsut the input mapping if eveyrhting else was done correctly
+
+
+Start with Interpose I guess
+
+- im guessing it will be bad for most of the models 
+
+Then somehting else
+------------------------------
+Extra not really extra add the README 
+    - for readme if u are running make sure to have folders premade cuz i didn't put check for it 
+also push this on github
+MAYBE SET THE LIMITS OF THE AXES 
