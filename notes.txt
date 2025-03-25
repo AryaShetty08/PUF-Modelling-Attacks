@@ -44,3 +44,5 @@ Extra not really extra add the README
     - for readme if u are running make sure to have folders premade cuz i didn't put check for it 
 also push this on github
 MAYBE SET THE LIMITS OF THE AXES 
+right now we save th models but don't do anything with them maybe if we want to have like a tester script i guess
+also manually changing the numbers for different models rn

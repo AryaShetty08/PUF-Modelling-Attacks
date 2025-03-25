@@ -138,7 +138,8 @@ def trainP(challenges, responses):
         #    print(f"Early stopping at epoch {epoch+1}")
         #    break
 
-    plot_train("Neural Network", train_losses, val_losses, val_accuracies)
+    name = f"Perceptron"
+    plot_train(name, train_losses, val_losses, val_accuracies)
 
     return model
 
@@ -180,7 +181,9 @@ def testP(challenges, responses, model):
     # maybe change this line 
     plt.axvline(x=0.8, color='r', linestyle='--', label='High Confidence Threshold')
     plt.legend()
-    plt.show()
+    model_name = f"Perceptron"
+    plt.savefig(f'models/Perceptron/2/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/Perceptron/2/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
 
 def plot_train(model_name, train_losses, val_losses, val_accuracies):
@@ -205,8 +208,8 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
     plt.ylim(0, 1.05)  # Set y-axis limits
     
     plt.tight_layout()
-    plt.savefig(f'graphs/Perceptron/{model_name.lower().replace(" ", "_")}_training_curves.png')
-    print(f"Training curves saved to graphs/Perceptron/{model_name.lower().replace(' ', '_')}_training_curves.png")
+    plt.savefig(f'models/Perceptron/2/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/Perceptron/2/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
 
 if __name__ == "__main__":
@@ -220,18 +223,26 @@ if __name__ == "__main__":
     # Generate a dataset of Challenge-Response Pairs (CRPs)
     n_bits = 64
     num_crps = 100000  # More CRPs = better attack success
-    arbPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
-    arbCRP = pypuf.io.ChallengeResponseSet.from_simulation(arbPUF, N=num_crps, seed=2)
+
+    if args.type == "Arbiter":
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
+    elif args.type == "Interpose":
+        modelPUF = pypuf.simulation.InterposePUF(n=64, k_up=8, k_down=8, seed=1, noisiness=.05)
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
+    else:
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
     
-    train_challenges = arbCRP.challenges  # Shape: (50000, 64)    
+    train_challenges = modelCRP.challenges  # Shape: (50000, 64)    
     # Extract challenge and response data
-    train_responses = arbCRP.responses.flatten()  # Convert from [[1], [1], [-1], ...] to [1, 1, -1, ...]
+    train_responses = modelCRP.responses.flatten()  # Convert from [[1], [1], [-1], ...] to [1, 1, -1, ...]
     # Convert responses (-1,1) → (0,1) for logistic regression
     train_responses = (train_responses + 1) // 2
     print("agaom", train_responses)
 
     test_challenges = pypuf.io.random_inputs(n=n_bits, N=1000, seed=42)
-    test_responses = arbPUF.eval(test_challenges).flatten()
+    test_responses = modelPUF.eval(test_challenges).flatten()
     test_responses = (test_responses + 1) // 2  # Convert to (0,1)
 
     # run specifc input mapping for required PUF 
@@ -244,9 +255,14 @@ if __name__ == "__main__":
     # test acc of LR model 
     testP(test_challenges, test_responses, model)
 
+    with open("models/Perceptron/2/params.txt", "w") as file:
+        file.write(f"PUF type: {args.type}\n")
+        file.write(f"n_bits: {n_bits}\n")
+        file.write(f"num_crps: {num_crps}\n")
+
     # change name for each type 
     # Save the model
-    torch.save(model.state_dict(), "perceptron_puf_arb_model.pth")
+    torch.save(model.state_dict(), f"models/Perceptron/2/perceptron_model.pth")
     print("Model saved successfully!")
 
     # MAKE GRAPHS 

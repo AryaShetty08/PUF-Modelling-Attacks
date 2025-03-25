@@ -1,6 +1,7 @@
 # Arbiter PUF is like weighted sum with sign function, 
 # so logistic regression is good attack
 
+import joblib
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -111,7 +112,11 @@ def trainLR(challenges, responses):
     plt.ylabel('Accuracy')
     plt.ylim(0,1)
     plt.tight_layout()
-    plt.show()
+
+    model_name = f"LR"
+
+    plt.savefig(f'models/LR/2/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/LR/2/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
     return clf
 
@@ -146,7 +151,10 @@ def testLR(challenges, responses, model):
     # maybe change this line 
     plt.axvline(x=0.8, color='r', linestyle='--', label='High Confidence Threshold')
     plt.legend()
-    plt.show()
+    
+    model_name = f"LR"
+    plt.savefig(f'models/LR/2/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/LR/2/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
     accuracy = model.score(challenges, responses)
     print(f"Attack Accuracy: {accuracy:.4f}")
@@ -170,8 +178,7 @@ if __name__ == "__main__":
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
     else: # for none type
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
-        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
-    
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)   
     
     train_challenges = modelCRP.challenges  # Shape: (50000, 64)    
     # Extract challenge and response data
@@ -193,3 +200,11 @@ if __name__ == "__main__":
 
     # test acc of LR model 
     testLR(test_challenges, test_responses, model)
+
+    with open("models/LR/2/params.txt", "w") as file:
+        file.write(f"PUF type: {args.type}\n")
+        file.write(f"n_bits: {n_bits}\n")
+        file.write(f"num_crps: {num_crps}\n")
+
+    joblib.dump(model, f"models/LR/2/lr_model.joblib")
+    print("Model saved successfully!")

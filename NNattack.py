@@ -187,8 +187,9 @@ def trainNN(challenges, responses):
         # if patience_counter >= patience:
         #    print(f"Early stopping at epoch {epoch+1}")
         #    break
+    name = f"NN"
 
-    plot_train("Neural Network", train_losses, val_losses, val_accuracies)
+    plot_train(name, train_losses, val_losses, val_accuracies)
 
     return model
 
@@ -230,7 +231,9 @@ def testNN(challenges, responses, model):
     # maybe change this line 
     plt.axvline(x=0.8, color='r', linestyle='--', label='High Confidence Threshold')
     plt.legend()
-    plt.show()
+    model_name = f"NN"
+    plt.savefig(f'models/NN/2/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/NN/2/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
 def plot_train(model_name, train_losses, val_losses, val_accuracies):
     plt.figure(figsize=(12, 4))
@@ -254,8 +257,8 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
     plt.ylim(0, 1.05)  # Set y-axis limits
     
     plt.tight_layout()
-    plt.savefig(f'graphs/NN/{model_name.lower().replace(" ", "_")}_training_curves.png')
-    print(f"Training curves saved to graphs/NN/{model_name.lower().replace(' ', '_')}_training_curves.png")
+    plt.savefig(f'models/NN/2/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/NN/2/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
 
 if __name__ == "__main__":
@@ -301,9 +304,14 @@ if __name__ == "__main__":
     # test acc of LR model 
     testNN(test_challenges, test_responses, model)
 
+    with open("models/NN/2/params.txt", "w") as file:
+        file.write(f"PUF type: {args.type}\n")
+        file.write(f"n_bits: {n_bits}\n")
+        file.write(f"num_crps: {num_crps}\n")
+
     # change name for each type 
     # Save the model
-    torch.save(model.state_dict(), "nn_arb_model.pth")
+    torch.save(model.state_dict(), f"models/NN/2/nn_model.pth")
     print("Model saved successfully!")
 
     # MAKE GRAPHS 
