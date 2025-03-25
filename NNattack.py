@@ -10,14 +10,23 @@ import argparse
 import matplotlib.pyplot as plt 
 import os 
 
-# transform raw challenge bits into features for PUF
-# the normal challenge bits are representing the don't cross (1) and cross (-1)
-# which is not helpful for learning, the transformed will show the cumulative effect at the position
+'''
+Transforms raw challenge bits into features for PUF
+The normal challenge bits represent the don't cross (1) and cross (-1)
+which is not helpful for learning
+The transformed bits are based on each PUF's architecture that show the effect each position has on the output
+
+Input:
+challenges - raw challenges array
+PUF_type - transformation dependent
+
+Output:
+features - transformed array of challenges
+'''
 def input_map(challenges, PUF_type):
 
     if PUF_type == "Arbiter":
         # the challenges will start {-1, 1} format
-        # ones array of shape
         n = challenges.shape[1]
         features = np.zeros((challenges.shape[0], n), dtype=np.float32)
     
