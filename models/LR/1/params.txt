@@ -1,3 +1,5 @@
+Start
+Attack Accuracy: 0.5440
 PUF type: None
 n_bits: 64
 num_crps: 100000
