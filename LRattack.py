@@ -27,6 +27,7 @@ features - transformed array of challenges
 
 def input_map(challenges, PUF_type):
 
+    # simplest PUF design with two paths switching
     if PUF_type == "Arbiter":
         # the challenges will start {-1, 1} format
         n = challenges.shape[1]
@@ -40,64 +41,41 @@ def input_map(challenges, PUF_type):
         print(features.shape)
         return features   
     
+    # hardest PUF design to model 
     elif PUF_type == "Interpose":
-        n = challenges.shape[1]
-        # For Interpose PUF, we need more sophisticated features
-        # We'll create features that capture both the upper and lower PUF
 
-        # Basic parity features (like Arbiter PUF)
-        arbiter_features = np.zeros((challenges.shape[0], n), dtype=np.float32)
-        for i in range(n):
-            arbiter_features[:, i] = np.prod(challenges[:, i:], axis=1)
-
-        # Additional features for the interpose effect
-        # Typically, the Interpose PUF uses the output of a smaller upper PUF
-        # at a specific position in the lower PUF's chain
-
-        # We'll model this by creating "interpose features" that capture
-        # the interaction between different segments of the challenge
-
-        # Determine interpose position (typically n/2 for n-bit challenges)
-        interpose_pos = n // 2
-
-        # Create features for upper PUF (first half of bits)
-        upper_features = np.zeros((challenges.shape[0], interpose_pos), dtype=np.float32)
-        for i in range(interpose_pos):
-            upper_features[:, i] = np.prod(challenges[:, i:interpose_pos], axis=1)
-
-        # Create interaction features that model how the upper PUF's output
-        # might affect the lower PUF's stages
-        interaction_features = np.zeros((challenges.shape[0], n-interpose_pos), dtype=np.float32)
-        for i in range(n-interpose_pos):
-            # Model interaction between upper PUF result and lower PUF stages
-            # We approximate the upper PUF result with the parity of the first half
-            upper_puf_approx = np.prod(challenges[:, :interpose_pos], axis=1)
-            interaction_features[:, i] = upper_puf_approx * np.prod(challenges[:, interpose_pos+i:], axis=1)
-
-        # Combine all features
-        # We include original arbiter features, upper PUF features, and interaction features
-        combined_features = np.hstack((arbiter_features, upper_features, interaction_features))
-
-        return combined_features
+        return challenges
      
-    # with no input mapping
+    # with no input mapping as base 
     return challenges
 
+'''
+    Main training function
+    In this case uses logistic regression to train the PUF model 
+    Effective for binary cases where you need to set output to either 0 or 1
+
+    Input:
+    challenges - transformed challenges after sending it through input_map
+    responses - list that corresponds to the n-bit challenges, will be either 0 or 1
+
+    Output:
+    clf - model that was trained with linear regression
+    training plots - used matplotlib to show one iteration of training loss 
+'''
 def trainLR(challenges, responses):
-    # Train logistic regression model
     # lbfgs optimizer since data isn't huge? maybe have to change it
     train_challenges, val_challenges, train_responses, val_responses = train_test_split(challenges, responses, test_size=0.2, random_state=42)
     clf = LogisticRegression(solver='lbfgs', max_iter=1000)
     clf.fit(train_challenges, train_responses)
     
-    # Calculate losses
+    # Calculate losses for metrics 
     train_prob = clf.predict_proba(train_challenges)[:, 1]
     val_prob = clf.predict_proba(val_challenges)[:, 1]
     
     train_loss = log_loss(train_responses, train_prob)
     val_loss = log_loss(val_responses, val_prob)
     
-    # Plot single point
+    # Plot single point, since using sklearn doesn't use epochs like pytorch learning
     plt.figure(figsize=(12,5))
     plt.subplot(1,2,1)
     plt.bar(['Training Loss', 'Validation Loss'], [train_loss, val_loss])
@@ -114,20 +92,36 @@ def trainLR(challenges, responses):
 
     model_name = f"LR"
 
+    # Saves to file directory
     plt.savefig(f'models/LR/2/{model_name.lower().replace(" ", "_")}_training_curves.png')
     print(f"Training curves saved to models/LR/2/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
+    # return model 
     return clf
 
+'''
+    Main testing function 
+    Runs the saved model on new CRP set to see its effectiveness as model
+
+    Input: 
+    challenges - new transformed test challenge set 
+    responses - new test responses for comparison to the model's predictions
+    model - the trained model after running train script
+
+    Output:
+    Test accuracy
+    Confidence plots - Shows the confidence of the model's predicitons
+
+'''
 def testLR(challenges, responses, model):
-    # Test on new CRPs
-    # make sure to apply responses before changing input
+    # gather predictions
     pred_probs = model.predict_proba(challenges)[:, 1]
     
     confidence = np.abs(pred_probs - 0.5) * 2
     predictions = (pred_probs >= 0.5).astype(int)
     accuracy = np.mean(predictions == responses)
 
+    # change confidence level if needed 
     high_conf_mask = confidence > 0.8
     high_conf_predictions = predictions[high_conf_mask]
     high_conf_responses = responses[high_conf_mask]
@@ -140,7 +134,7 @@ def testLR(challenges, responses, model):
 
     print(f"Overall accuracy: {accuracy:.4f}")
 
-
+    # bar graph 
     plt.figure(figsize=(10,5))
     plt.hist(confidence, bins=50, edgecolor='black')
     plt.title('Logistic Regression - Confidence Distribution')
@@ -158,6 +152,10 @@ def testLR(challenges, responses, model):
     accuracy = model.score(challenges, responses)
     print(f"Attack Accuracy: {accuracy:.4f}")
 
+'''
+    Main input function 
+    It takes in the input arguments when run and applies the correct PUF input mapping 
+'''
 if __name__ == "__main__":
     # parse input arguments 
     parser = argparse.ArgumentParser(description="PUF LR Training")
@@ -165,10 +163,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # the main setup 
-    # i guess have args to change what type of PUF, will do it later
-    # Generate a dataset of Challenge-Response Pairs (CRPs)
     n_bits = 64
-    num_crps = 100000  # More CRPs = better attack success
+    num_crps = 100000  # More CRPs = better attack success???
     if args.type == "Arbiter":
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
@@ -179,16 +175,17 @@ if __name__ == "__main__":
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)   
     
-    train_challenges = modelCRP.challenges  # Shape: (50000, 64)    
+    train_challenges = modelCRP.challenges  
     # Extract challenge and response data
     train_responses = modelCRP.responses.flatten()  # Convert from [[1], [1], [-1], ...] to [1, 1, -1, ...]
-    # Convert responses (-1,1) → (0,1) for logistic regression
+    # Convert responses (-1,1) → (0,1) for training
     train_responses = (train_responses + 1) // 2
+    
     print("agaom", train_responses)
 
     test_challenges = pypuf.io.random_inputs(n=n_bits, N=1000, seed=42)
     test_responses = modelPUF.eval(test_challenges).flatten()
-    test_responses = (test_responses + 1) // 2  # Convert to (0,1)
+    test_responses = (test_responses + 1) // 2 
 
     # run specifc input mapping for required PUF 
     train_challenges = input_map(train_challenges, args.type)
@@ -200,6 +197,7 @@ if __name__ == "__main__":
     # test acc of LR model 
     testLR(test_challenges, test_responses, model)
 
+    # made txt file so we know the params of the model trained 
     with open("models/LR/2/params.txt", "w") as file:
         file.write(f"PUF type: {args.type}\n")
         file.write(f"n_bits: {n_bits}\n")
