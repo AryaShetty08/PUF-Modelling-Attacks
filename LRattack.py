@@ -243,6 +243,7 @@ if __name__ == "__main__":
         file.write(f"PUF type: {args.type}\n")
         file.write(f"n_bits: {n_bits}\n")
         file.write(f"num_crps: {num_crps}\n")
+        file.write(f"k: {k}\n")
 
     joblib.dump(model, f"models/LR/1/lr_model.joblib")
     print("Model saved successfully!")
