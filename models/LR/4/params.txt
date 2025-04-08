@@ -1,0 +1,6 @@
+Start
+Attack Accuracy: 0.4850
+PUF type: Lightweight
+n_bits: 64
+num_crps: 100000
+k: 4

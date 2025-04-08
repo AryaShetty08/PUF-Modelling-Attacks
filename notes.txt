@@ -54,8 +54,29 @@ or feed forward xor
 maybe no interpose?
 okay so arbiter, xor, lightweight, then mention that there are more and harder 
 
-okay cool do tests for xor, then try to do tests for lightweight
+stuff to complete:
+also might have to change input mapping for lightweight 
+
 then change the num crps for the bad ones, then retrain
+
+maybe even change num of bits
+
 then change the num of chains, then retrain 
+
 try adding noise for one 
+
 and then get all graphs and make presentation
+
+
+Results:
+evertyhing bad for none
+
+everything bad for Lightweight
+
+lr is good for arbiter
+
+xor is good for arbiter 
+
+nn is good for arbiter, xor 
+
+
