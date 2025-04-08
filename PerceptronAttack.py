@@ -27,8 +27,8 @@ features - transformed array of challenges
 '''
 def input_map(challenges, PUF_type):
 
-    # simplest PUF design with two paths switching
-    if PUF_type == "Arbiter":
+    # simplest PUF design with two paths switching, try using it for XOR as well
+    if PUF_type == "Arbiter" or PUF_type == "XOR":
         # the challenges will start {-1, 1} format
         n = challenges.shape[1]
         features = np.zeros((challenges.shape[0], n), dtype=np.float32)
@@ -40,14 +40,38 @@ def input_map(challenges, PUF_type):
         
         print(features.shape)
         return features   
-    
-    # hardest PUF design to model 
-    elif PUF_type == "Interpose":
 
-        return challenges
-     
+    # uses unique challenges fr each arbiter chain, tough to input map
+    elif PUF_type == "LightweightSecure":
+        n = challenges.shape[1]
+        features = np.zeros((challenges.shape[0], n), dtype=np.float32)
+        
+        # For Lightweight Secure PUF, we need to transform challenges
+        # by generating different challenge bits for each arbiter chain
+        # First, we'll compute the base delay differences as in regular Arbiter PUF
+        for i in range(n):
+            features[:, i] = np.prod(challenges[:, i:], axis=1)
+        
+        # The key aspect of Lightweight Secure PUF is that it applies 
+        # transformations to the input challenges before using them
+        # This is often implemented with an XOR network that creates 
+        # different effective challenges for each arbiter
+        
+        # We'll use a simple transformation here - you may need to adjust 
+        # based on the specific implementation you're targeting
+        transformed_features = features.copy()
+        
+        # Apply a simple mixing function to simulate the challenge transformation
+        # In a real implementation, this would follow the specific circuit design
+        for i in range(1, n):
+            # Mix adjacent features to simulate challenge bit mixing
+            transformed_features[:, i] = features[:, i] * features[:, i-1]
+        
+        return transformed_features
+
     # with no input mapping as base 
     return challenges
+
 
 '''
     Main training function
@@ -264,18 +288,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # the main setup 
-    n_bits = 64
-    num_crps = 100000  # More CRPs = better attack success
-
+    n_bits = 64 # More bits = harder to attack
+    num_crps = 100000  # More CRPs = better attack success???
+    seed=1
+    noisiness = 0.05
+    k=4 # num of chains
     if args.type == "Arbiter":
-        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
-    elif args.type == "Interpose":
-        modelPUF = pypuf.simulation.InterposePUF(n=64, k_up=8, k_down=8, seed=1, noisiness=.05)
+    elif args.type == "XOR":
+        modelPUF = pypuf.simulation.XORArbiterPUF(n=n_bits, k=k, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
-    else:
-        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+    elif args.type == "Lightweight":
+        modelPUF = pypuf.simulation.LightweightSecurePUF(n=n_bits, k=k, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
+    else: # for none type
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)   
     
     train_challenges = modelCRP.challenges  
     # Extract challenge and response data

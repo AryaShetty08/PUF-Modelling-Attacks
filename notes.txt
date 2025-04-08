@@ -46,3 +46,10 @@ also push this on github
 MAYBE SET THE LIMITS OF THE AXES 
 right now we save th models but don't do anything with them maybe if we want to have like a tester script i guess
 also manually changing the numbers for different models rn
+
+maybe add noise to training pufs??
+
+lightweight secure puf
+or feed forward xor
+maybe no interpose?
+okay so arbiter, xor, lightweight, then mention that there are more and harder 

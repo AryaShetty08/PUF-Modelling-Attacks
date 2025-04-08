@@ -27,27 +27,51 @@ features - transformed array of challenges
 '''
 def input_map(challenges, PUF_type):
 
-    # simplest PUF design with two paths switching
-    if PUF_type == "Arbiter":
+    # simplest PUF design with two paths switching, try using it for XOR as well
+    if PUF_type == "Arbiter" or PUF_type == "XOR":
         # the challenges will start {-1, 1} format
         n = challenges.shape[1]
         features = np.zeros((challenges.shape[0], n), dtype=np.float32)
-    
+        
         # Transform challenges to reflect delay differences
         for i in range(n):
             # Calculate parity feature for position i
             features[:, i] = np.prod(challenges[:, i:], axis=1)
         
         print(features.shape)
-        return features
-    
-    # hardest PUF design to model 
-    elif PUF_type == "Interpose":
+        return features   
+
+    # uses unique challenges fr each arbiter chain, tough to input map
+    elif PUF_type == "LightweightSecure":
+        n = challenges.shape[1]
+        features = np.zeros((challenges.shape[0], n), dtype=np.float32)
         
-        return challenges 
-     
-    # with no input mapping as base
+        # For Lightweight Secure PUF, we need to transform challenges
+        # by generating different challenge bits for each arbiter chain
+        # First, we'll compute the base delay differences as in regular Arbiter PUF
+        for i in range(n):
+            features[:, i] = np.prod(challenges[:, i:], axis=1)
+        
+        # The key aspect of Lightweight Secure PUF is that it applies 
+        # transformations to the input challenges before using them
+        # This is often implemented with an XOR network that creates 
+        # different effective challenges for each arbiter
+        
+        # We'll use a simple transformation here - you may need to adjust 
+        # based on the specific implementation you're targeting
+        transformed_features = features.copy()
+        
+        # Apply a simple mixing function to simulate the challenge transformation
+        # In a real implementation, this would follow the specific circuit design
+        for i in range(1, n):
+            # Mix adjacent features to simulate challenge bit mixing
+            transformed_features[:, i] = features[:, i] * features[:, i-1]
+        
+        return transformed_features
+
+    # with no input mapping as base 
     return challenges
+
 
 '''
     Main training function
@@ -158,7 +182,7 @@ def trainNN(challenges, responses):
         
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}")
      
-    with open("models/NN/1/params.txt", "w") as file:
+    with open("models/NN/3/params.txt", "w") as file:
         file.write(f"Epoch {num_epochs}, Train Loss: {train_losses[-1]:.4f}, Val Loss: {val_losses[-1]:.4f}, Val Acc: {val_accuracies[-1]:.4f}\n")
 
     name = f"NN"
@@ -197,7 +221,7 @@ def testNN(challenges, responses, model):
 
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}")
 
-    with open("models/NN/1/params.txt", "a") as file:
+    with open("models/NN/3/params.txt", "a") as file:
         file.write(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}\n")
 
     # Calculate prediction confidence 
@@ -208,7 +232,7 @@ def testNN(challenges, responses, model):
         print(f"High confidence predictions: {high_conf_indices.sum().item()}/{len(test_outputs)}")
         print(f"High confidence accuracy: {high_conf_accuracy:.4f}")
     
-        with open("models/NN/1/params.txt", "a") as file:
+        with open("models/NN/3/params.txt", "a") as file:
             file.write(f"High confidence predictions: {high_conf_indices.sum().item()}/{len(test_outputs)}\n")
             file.write(f"High confidence accuracy: {high_conf_accuracy:.4f}\n")
 
@@ -222,8 +246,8 @@ def testNN(challenges, responses, model):
     plt.axvline(x=0.8, color='r', linestyle='--', label='High Confidence Threshold')
     plt.legend()
     model_name = f"NN"
-    plt.savefig(f'models/NN/1/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
-    print(f"Confidence curves saved to models/NN/1/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
+    plt.savefig(f'models/NN/3/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/NN/3/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
 
 '''
@@ -262,8 +286,8 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
     plt.ylim(0, 1.05)  # Set y-axis limits
     
     plt.tight_layout()
-    plt.savefig(f'models/NN/1/{model_name.lower().replace(" ", "_")}_training_curves.png')
-    print(f"Training curves saved to models/NN/1/{model_name.lower().replace(' ', '_')}_training_curves.png")
+    plt.savefig(f'models/NN/3/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/NN/3/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
 
 '''
@@ -272,7 +296,7 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
 '''
 if __name__ == "__main__":
     # reset txt file
-    with open("models/NN/1/params.txt", "w") as file:
+    with open("models/NN/3/params.txt", "w") as file:
         file.write("Start\n")
     # parse input arguments 
     parser = argparse.ArgumentParser(description="PUF Neural Network Training")
@@ -280,18 +304,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # the main setup 
-    n_bits = 64
-    num_crps = 100000  # More CRPs = better attack success
-
+    n_bits = 64 # More bits = harder to attack
+    num_crps = 100000  # More CRPs = better attack success???
+    seed=1
+    noisiness = 0.05
+    k=4 # num of chains
     if args.type == "Arbiter":
-        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
-    elif args.type == "Interpose":
-        modelPUF = pypuf.simulation.InterposePUF(n=64, k_up=8, k_down=8, seed=1, noisiness=.05)
+    elif args.type == "XOR":
+        modelPUF = pypuf.simulation.XORArbiterPUF(n=n_bits, k=k, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
-    else:
-        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=1)
+    elif args.type == "Lightweight":
+        modelPUF = pypuf.simulation.LightweightSecurePUF(n=n_bits, k=k, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
+    else: # for none type
+        modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
+        modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)   
 
     train_challenges = modelCRP.challenges   
     # Extract challenge and response data
@@ -315,11 +344,11 @@ if __name__ == "__main__":
     testNN(test_challenges, test_responses, model)
 
     # made txt file so we know the params of the model trained 
-    with open("models/NN/1/params.txt", "a") as file:
+    with open("models/NN/3/params.txt", "a") as file:
         file.write(f"PUF type: {args.type}\n")
         file.write(f"n_bits: {n_bits}\n")
         file.write(f"num_crps: {num_crps}\n")
 
     # Save the model
-    torch.save(model.state_dict(), f"models/NN/1/nn_model.pth")
+    torch.save(model.state_dict(), f"models/NN/3/nn_model.pth")
     print("Model saved successfully!")
