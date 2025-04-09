@@ -1,0 +1,7 @@
+Start
+Epoch 50, Train Loss: 0.6832, Val Loss: 0.6869, Val Acc: 0.5595
+Test Loss: 0.6798, Test Accuracy: 0.5800
+PUF type: XOR
+n_bits: 128
+num_crps: 100000
+k: 2

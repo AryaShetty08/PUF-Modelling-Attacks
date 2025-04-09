@@ -57,14 +57,6 @@ okay so arbiter, xor, lightweight, then mention that there are more and harder
 stuff to complete:
 also might have to change input mapping for lightweight 
 
-then change the num crps for the bad ones, then retrain
-
-maybe even change num of bits
-
-then change the num of chains, then retrain 
-
-try adding noise for one 
-
 and then get all graphs and make presentation
 
 
@@ -72,6 +64,7 @@ Results:
 evertyhing bad for none
 
 everything bad for Lightweight
+BUTTT, if you put it on 4 bits lol the NN does work, but you know nowadays its 128 and 64 
 
 lr is good for arbiter
 
@@ -79,4 +72,29 @@ xor is good for arbiter
 
 nn is good for arbiter, xor 
 
+okay i proved 128 is still good for xor of NN slightly worse accurcay tho
 
+having too many crps 1000000, makes it just take forever not even improving,
+if it was not working initally more data won't help 
+
+k is But higher k also means:
+
+More area and power.
+
+Slightly higher probability of unstable outputs (needs careful hardware calibration).
+
+okay so 1 chain is just arbiter puf?????? correct make it no linear
+
+even with 2 chains perceptron just doesn't have capacity to learn for XOR
+
+oh crap it fails on 8 ???,6 not working either, will a million crps save it tho??, if not just try 2 for proof it works
+
+okay lets just add noise, still keeps it the same 
+
+even with 0.5 noise on arbiter LR, still accurate just less confidence so still good 
+
+noise works with k=2 for NN on XOR
+
+time to check lightweight
+idk on 64 bits, k 2 chains, no noise, lightweight is still kinda bad on NN maybe check the input mapping,
+not sure but might have to be quits

@@ -1,0 +1,11 @@
+Start
+Total predictions: 1000
+High confidence predictions: 533
+High confidence accuracy: 0.9831
+Overall accuracy: 0.8530
+Attack Accuracy: 0.8530
+PUF type: Arbiter
+n_bits: 128
+num_crps: 100000
+k: 2
+noiseiness = 0.5

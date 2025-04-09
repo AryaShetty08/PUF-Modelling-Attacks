@@ -1,0 +1,8 @@
+Epoch 50, Train Loss: 0.4361, Val Loss: 0.3274, Val Acc: 0.8752
+Test Loss: 0.3217, Test Accuracy: 0.8890
+High confidence predictions: 317/1000
+High confidence accuracy: 0.9968
+PUF type: XOR
+n_bits: 128
+num_crps: 100000
+k: 4

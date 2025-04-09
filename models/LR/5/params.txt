@@ -1,0 +1,6 @@
+Start
+Attack Accuracy: 0.4660
+PUF type: XOR
+n_bits: 128
+num_crps: 100000
+k: 8

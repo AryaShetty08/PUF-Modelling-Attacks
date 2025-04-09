@@ -164,7 +164,7 @@ def trainP(challenges, responses):
      
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}")
     
-    with open("models/Perceptron/5/params.txt", "a") as file:
+    with open("models/Perceptron/6/params.txt", "a") as file:
         file.write(f"Epoch {num_epochs}, Train Loss: {train_losses[-1]:.4f}, Val Loss: {val_losses[-1]:.4f}, Val Acc: {val_accuracies[-1]:.4f}\n")
 
     name = f"Perceptron"
@@ -203,7 +203,7 @@ def testP(challenges, responses, model):
 
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}")
     
-    with open("models/Perceptron/5/params.txt", "a") as file:
+    with open("models/Perceptron/6/params.txt", "a") as file:
         file.write(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}\n")
 
 
@@ -215,7 +215,7 @@ def testP(challenges, responses, model):
         print(f"High confidence predictions: {high_conf_indices.sum().item()}/{len(test_outputs)}")
         print(f"High confidence accuracy: {high_conf_accuracy:.4f}")
 
-        with open("models/Perceptron/5/params.txt", "a") as file:
+        with open("models/Perceptron/6/params.txt", "a") as file:
             file.write(f"High confidence predictions: {high_conf_indices.sum().item()}/{len(test_outputs)}\n")
             file.write(f"High confidence accuracy: {high_conf_accuracy:.4f}\n")
 
@@ -232,8 +232,8 @@ def testP(challenges, responses, model):
     plt.axvline(x=0.8, color='r', linestyle='--', label='High Confidence Threshold')
     plt.legend()
     model_name = f"Perceptron"
-    plt.savefig(f'models/Perceptron/5/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
-    print(f"Confidence curves saved to models/Perceptron/5/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
+    plt.savefig(f'models/Perceptron/6/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/Perceptron/6/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
 '''
     Plotting function
@@ -271,8 +271,8 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
     plt.ylim(0, 1.05)  # Set y-axis limits
     
     plt.tight_layout()
-    plt.savefig(f'models/Perceptron/5/{model_name.lower().replace(" ", "_")}_training_curves.png')
-    print(f"Training curves saved to models/Perceptron/5/{model_name.lower().replace(' ', '_')}_training_curves.png")
+    plt.savefig(f'models/Perceptron/6/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/Perceptron/6/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
 '''
     Main input function 
@@ -280,7 +280,7 @@ def plot_train(model_name, train_losses, val_losses, val_accuracies):
 '''
 if __name__ == "__main__":
     # reset txt file
-    with open("models/Perceptron/5/params.txt", "w") as file:
+    with open("models/Perceptron/6/params.txt", "w") as file:
         file.write("Start\n")
     # parse input arguments 
     parser = argparse.ArgumentParser(description="PUF Neural Network Training")
@@ -288,11 +288,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # the main setup 
-    n_bits = 64 # More bits = harder to attack
+    n_bits = 128 # More bits = harder to attack
     num_crps = 100000  # More CRPs = better attack success???
     seed=1
     noisiness = 0.05
-    k=4 # num of chains
+    k=2 # num of chains
     if args.type == "Arbiter":
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
@@ -329,12 +329,12 @@ if __name__ == "__main__":
     testP(test_challenges, test_responses, model)
 
     # made txt file so we know the params of the model trained 
-    with open("models/Perceptron/5/params.txt", "a") as file:
+    with open("models/Perceptron/6/params.txt", "a") as file:
         file.write(f"PUF type: {args.type}\n")
         file.write(f"n_bits: {n_bits}\n")
         file.write(f"num_crps: {num_crps}\n")
         file.write(f"k: {k}\n")
 
     # Save the model
-    torch.save(model.state_dict(), f"models/Perceptron/5/perceptron_model.pth")
+    torch.save(model.state_dict(), f"models/Perceptron/6/perceptron_model.pth")
     print("Model saved successfully!")
