@@ -42,7 +42,7 @@ def input_map(challenges, PUF_type):
         return features   
 
     # uses unique challenges fr each arbiter chain, tough to input map
-    elif PUF_type == "LightweightSecure":
+    elif PUF_type == "Lightweight":
         n = challenges.shape[1]
         features = np.zeros((challenges.shape[0], n), dtype=np.float32)
         

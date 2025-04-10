@@ -53,13 +53,14 @@ lightweight secure puf
 or feed forward xor
 maybe no interpose?
 okay so arbiter, xor, lightweight, then mention that there are more and harder 
-
+-------------------------------------------------------------------
 stuff to complete:
 also might have to change input mapping for lightweight 
 
 and then get all graphs and make presentation
 
-
+make how to use guide for the code real quick just in case
+-------------------------------------------------------------------
 Results:
 evertyhing bad for none
 
@@ -98,3 +99,8 @@ noise works with k=2 for NN on XOR
 time to check lightweight
 idk on 64 bits, k 2 chains, no noise, lightweight is still kinda bad on NN maybe check the input mapping,
 not sure but might have to be quits
+
+WAAAITT I WASNT EVEN USIING THE INPUT MAPPPPPPPPPPPPING 
+SO THE 57% was form JUST NEURAL NETWORK BEING GOOD 
+
+WHAT IT WORKED WITH NEW INPUT MAPPING ???

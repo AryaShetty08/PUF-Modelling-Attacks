@@ -41,33 +41,37 @@ def input_map(challenges, PUF_type):
         print(features.shape)
         return features   
 
-    # uses unique challenges fr each arbiter chain, tough to input map
-    elif PUF_type == "LightweightSecure":
+    elif PUF_type == "Lightweight":
         n = challenges.shape[1]
         features = np.zeros((challenges.shape[0], n), dtype=np.float32)
         
-        # For Lightweight Secure PUF, we need to transform challenges
-        # by generating different challenge bits for each arbiter chain
-        # First, we'll compute the base delay differences as in regular Arbiter PUF
+        # First compute the base parity features as in Arbiter PUF
         for i in range(n):
             features[:, i] = np.prod(challenges[:, i:], axis=1)
         
-        # The key aspect of Lightweight Secure PUF is that it applies 
-        # transformations to the input challenges before using them
-        # This is often implemented with an XOR network that creates 
-        # different effective challenges for each arbiter
+        # For Lightweight Secure PUF, each arbiter chain gets different challenge bits
+        # through a network of XORs. We'll simulate this transformation:
         
-        # We'll use a simple transformation here - you may need to adjust 
-        # based on the specific implementation you're targeting
-        transformed_features = features.copy()
+        # Create a second feature set that represents the transformed challenges
+        # This simulates how the challenge bits are mixed before reaching different arbiter chains
+        transformed_features = np.zeros_like(features)
         
-        # Apply a simple mixing function to simulate the challenge transformation
-        # In a real implementation, this would follow the specific circuit design
-        for i in range(1, n):
-            # Mix adjacent features to simulate challenge bit mixing
-            transformed_features[:, i] = features[:, i] * features[:, i-1]
+        # Apply bit mixing pattern similar to what happens in Lightweight Secure PUF
+        # Create "virtual" challenges for the k different arbiter chains
+        for i in range(n):
+            # Mix adjacent bits with wrap-around (simulating the XOR network)
+            idx1 = i
+            idx2 = (i + 1) % n
+            idx3 = (i + 3) % n  # Use a jump of 3 to create more complex patterns
+            
+            # XOR operation in {-1,1} domain is equivalent to multiplication
+            transformed_features[:, i] = features[:, idx1] * features[:, idx2] * features[:, idx3]
         
-        return transformed_features
+        # Combine original and transformed features - this represents how the 
+        # challenge bits influence the final response through different paths
+        final_features = np.concatenate([features, transformed_features], axis=1)
+        
+        return final_features
 
     # with no input mapping as base 
     return challenges
