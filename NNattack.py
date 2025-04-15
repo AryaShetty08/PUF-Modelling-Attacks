@@ -308,11 +308,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # the main setup 
-    n_bits = 64 # More bits = harder to attack
+    n_bits = 128 # More bits = harder to attack
     num_crps = 100000  # More CRPs = better attack success???
     seed=1
     noisiness = 0.05
-    k=2 # num of chains
+    k=8 # num of chains
     if args.type == "Arbiter":
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
