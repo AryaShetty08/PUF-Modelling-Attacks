@@ -116,8 +116,8 @@ def trainLR(challenges, responses):
     model_name = f"LR"
 
     # Saves to file directory
-    plt.savefig(f'models/LR/6/{model_name.lower().replace(" ", "_")}_training_curves.png')
-    print(f"Training curves saved to models/LR/6/{model_name.lower().replace(' ', '_')}_training_curves.png")
+    plt.savefig(f'models/LR/9/{model_name.lower().replace(" ", "_")}_training_curves.png')
+    print(f"Training curves saved to models/LR/9/{model_name.lower().replace(' ', '_')}_training_curves.png")
 
     # return model 
     return clf
@@ -155,7 +155,7 @@ def testLR(challenges, responses, model):
         print(f"High confidence predictions: {np.sum(high_conf_mask)}")
         print(f"High confidence accuracy: {high_conf_accuracy:.4f}")
             
-        with open("models/LR/6/params.txt", "a") as file:
+        with open("models/LR/9/params.txt", "a") as file:
             file.write(f"Total predictions: {len(predictions)}\n")
             file.write(f"High confidence predictions: {np.sum(high_conf_mask)}\n")
             file.write(f"High confidence accuracy: {high_conf_accuracy:.4f}\n")
@@ -175,13 +175,13 @@ def testLR(challenges, responses, model):
     plt.legend()
     
     model_name = f"LR"
-    plt.savefig(f'models/LR/6/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
-    print(f"Confidence curves saved to models/LR/6/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
+    plt.savefig(f'models/LR/9/{model_name.lower().replace(" ", "_")}_confidence_distribution.png')
+    print(f"Confidence curves saved to models/LR/9/{model_name.lower().replace(' ', '_')}_confidence_distribution.png")
 
     accuracy = model.score(challenges, responses)
     print(f"Attack Accuracy: {accuracy:.4f}")
 
-    with open("models/LR/6/params.txt", "a") as file:
+    with open("models/LR/9/params.txt", "a") as file:
         file.write(f"Attack Accuracy: {accuracy:.4f}\n")
 
 '''
@@ -190,7 +190,7 @@ def testLR(challenges, responses, model):
 '''
 if __name__ == "__main__":
     # reset txt file
-    with open("models/LR/6/params.txt", "w") as file:
+    with open("models/LR/9/params.txt", "w") as file:
         file.write("Start\n")
     # parse input arguments 
     parser = argparse.ArgumentParser(description="PUF LR Training")
@@ -239,11 +239,11 @@ if __name__ == "__main__":
     testLR(test_challenges, test_responses, model)
 
     # made txt file so we know the params of the model trained 
-    with open("models/LR/6/params.txt", "a") as file:
+    with open("models/LR/9/params.txt", "a") as file:
         file.write(f"PUF type: {args.type}\n")
         file.write(f"n_bits: {n_bits}\n")
         file.write(f"num_crps: {num_crps}\n")
         file.write(f"k: {k}\n")
 
-    joblib.dump(model, f"models/LR/6/lr_model.joblib")
+    joblib.dump(model, f"models/LR/9/lr_model.joblib")
     print("Model saved successfully!")
