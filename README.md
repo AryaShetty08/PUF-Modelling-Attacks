@@ -7,7 +7,7 @@ The project is composed of three main scripts, LRattack, PerceptronAttack, and N
 
 The pufTrain.py, testModel.py, and notes.txt are not to be used they are just for testing as of now. 
 
-If you want to run some of your training and testing, you can do so.
+If you want to run some of your training and testing, you can do so. IMPORTANT, before running make sure you make the specific numbered folder in the models section. Your results will save there, as of right now it is set to 9 so just create that folder in the attack folder you are testing.
 
 For all the scripts, you can use None (just Arbiter without input mapping), Arbiter, XOR, or Lightweight PUF input mapping for training. The specific CRPs, noise, and other features are changed in the actual code since I didn't add a parameter. 
 
