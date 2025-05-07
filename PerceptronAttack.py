@@ -43,31 +43,7 @@ def input_map(challenges, PUF_type):
 
     # uses unique challenges fr each arbiter chain, tough to input map
     elif PUF_type == "Lightweight":
-        n = challenges.shape[1]
-        features = np.zeros((challenges.shape[0], n), dtype=np.float32)
-        
-        # For Lightweight Secure PUF, we need to transform challenges
-        # by generating different challenge bits for each arbiter chain
-        # First, we'll compute the base delay differences as in regular Arbiter PUF
-        for i in range(n):
-            features[:, i] = np.prod(challenges[:, i:], axis=1)
-        
-        # The key aspect of Lightweight Secure PUF is that it applies 
-        # transformations to the input challenges before using them
-        # This is often implemented with an XOR network that creates 
-        # different effective challenges for each arbiter
-        
-        # We'll use a simple transformation here - you may need to adjust 
-        # based on the specific implementation you're targeting
-        transformed_features = features.copy()
-        
-        # Apply a simple mixing function to simulate the challenge transformation
-        # In a real implementation, this would follow the specific circuit design
-        for i in range(1, n):
-            # Mix adjacent features to simulate challenge bit mixing
-            transformed_features[:, i] = features[:, i] * features[:, i-1]
-        
-        return transformed_features
+        return challenges
 
     # with no input mapping as base 
     return challenges

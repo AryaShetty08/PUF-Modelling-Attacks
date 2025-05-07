@@ -41,37 +41,26 @@ def input_map(challenges, PUF_type):
         print(features.shape)
         return features   
 
+    # uses unique challenges fr each arbiter chain, tough to input map
     elif PUF_type == "Lightweight":
         n = challenges.shape[1]
-        features = np.zeros((challenges.shape[0], n), dtype=np.float32)
-        
-        # First compute the base parity features as in Arbiter PUF
+
+        # First same as Arbiter
+        features1 = np.zeros((challenges.shape[0], n), dtype=np.float32)
         for i in range(n):
-            features[:, i] = np.prod(challenges[:, i:], axis=1)
-        
-        # For Lightweight Secure PUF, each arbiter chain gets different challenge bits
-        # through a network of XORs. We'll simulate this transformation:
-        
-        # Create a second feature set that represents the transformed challenges
-        # This simulates how the challenge bits are mixed before reaching different arbiter chains
-        transformed_features = np.zeros_like(features)
-        
-        # Apply bit mixing pattern similar to what happens in Lightweight Secure PUF
-        # Create "virtual" challenges for the k different arbiter chains
+            features1[:, i] = np.prod(challenges[:, i:], axis=1)
+
+        # Second for the variety of challenges
+        features2 = np.zeros((challenges.shape[0], n), dtype=np.float32)
         for i in range(n):
-            # Mix adjacent bits with wrap-around (simulating the XOR network)
-            idx1 = i
-            idx2 = (i + 1) % n
-            idx3 = (i + 3) % n  # Use a jump of 3 to create more complex patterns
-            
-            # XOR operation in {-1,1} domain is equivalent to multiplication
-            transformed_features[:, i] = features[:, idx1] * features[:, idx2] * features[:, idx3]
-        
-        # Combine original and transformed features - this represents how the 
-        # challenge bits influence the final response through different paths
-        final_features = np.concatenate([features, transformed_features], axis=1)
-        
+            # wrap around with modulo
+            shifted_challenge = np.roll(challenges, shift=-1, axis=1)
+            features2[:, i] = np.prod(shifted_challenge[:, i:], axis=1)
+
+        # combine
+        final_features = np.concatenate([features1, features2], axis=1)
         return final_features
+    
 
     # with no input mapping as base 
     return challenges
@@ -119,7 +108,7 @@ def trainNN(challenges, responses):
                 nn.Linear(input_size, 128),
                 nn.LeakyReLU(0.2),
                 nn.BatchNorm1d(128),
-                nn.Dropout(0.3),
+                nn.Dropout(0.3), # hopefully learns better and understands patterns 
                 
                 nn.Linear(128, 64),
                 nn.LeakyReLU(0.2),
@@ -312,7 +301,7 @@ if __name__ == "__main__":
     num_crps = 100000  # More CRPs = better attack success???
     seed=1
     noisiness = 0.05
-    k=8 # num of chains
+    k=2 # num of chains
     if args.type == "Arbiter":
         modelPUF = pypuf.simulation.ArbiterPUF(n=n_bits, seed=seed)
         modelCRP = pypuf.io.ChallengeResponseSet.from_simulation(modelPUF, N=num_crps, seed=2)
